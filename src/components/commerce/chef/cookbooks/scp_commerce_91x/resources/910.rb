@@ -117,7 +117,7 @@ action :install do
     code script_file_path
     cwd install['commerce_sif_content_path']
     action :run
-    timeout 7200 # 2h
+    timeout 72000 # 20h
   end
 end
 

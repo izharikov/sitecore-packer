@@ -17,7 +17,7 @@ Function Invoke-InstallModuleTask {
   Write-Host "Installing module: " $moduleToInstall -ForegroundColor Green ; 
   $urlInstallModules = $BaseUrl + "/InstallModules.aspx?modules=" + $moduleToInstall
   Write-Host $urlInstallModules
-  Invoke-RestMethod $urlInstallModules -TimeoutSec 720
+  Invoke-RestMethod $urlInstallModules -TimeoutSec 0
 }
 
 Function Invoke-InstallPackageTask {
@@ -38,7 +38,7 @@ Function Invoke-InstallPackageTask {
   Write-Host "Installing package: " $packageToInstall -ForegroundColor Green ; 
   $urlInstallPackages = $BaseUrl + "/InstallPackages.aspx?package=" + $packageToInstall
   Write-Host $urlInstallPackages
-  Invoke-RestMethod $urlInstallPackages -TimeoutSec 720
+  Invoke-RestMethod $urlInstallPackages -TimeoutSec 0
 }
 
 Function Invoke-PublishToWebTask {
@@ -50,7 +50,7 @@ Function Invoke-PublishToWebTask {
 	
   Write-Host "Publishing to web..." -ForegroundColor Green ; 
   $urlPublish = $BaseUrl + "/Publish.aspx"
-  Invoke-RestMethod $urlPublish -TimeoutSec 720
+  Invoke-RestMethod $urlPublish -TimeoutSec 0
   Write-Host "Publishing to web complete..." -ForegroundColor Green ; 
 }
 
@@ -89,7 +89,7 @@ Function Invoke-CreateDefaultStorefrontTask {
   #Added Try catch to avoid deployment failure due to an issue in SPE 4.7.1 - Once fixed, we can remove this
   Try {
     $urlPowerShellScript = $BaseUrl + "/-/script/v2/master/$($scriptName)?user=$($sitecoreUsername)&password=$($sitecoreUserPassword)"
-    Invoke-RestMethod $urlPowerShellScript -TimeoutSec 1200
+    Invoke-RestMethod $urlPowerShellScript -TimeoutSec 0
   }
   Catch {
     $errorMessage = $_.Exception.Message
@@ -131,7 +131,7 @@ Function Invoke-GenerateCatalogTemplatesTask {
 
   Write-Host "Generating Catalog Templates ..." -ForegroundColor Green ; 
   $urlGenerate = $BaseUrl + "/GenerateCatalogTemplates.aspx"
-  Invoke-RestMethod $urlGenerate -TimeoutSec 180
+  Invoke-RestMethod $urlGenerate -TimeoutSec 0
   Write-Host "Generating Catalog Templates completed." -ForegroundColor Green ;
 }
 

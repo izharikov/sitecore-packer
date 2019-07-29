@@ -99,12 +99,12 @@ if ($CommerceSearchProvider -eq "SOLR") {
 	# , InstallSXAFrameworkModule
   Install-SitecoreConfiguration @params `
 		-Skip InstallPowershellExtensions `
-		-Verbose *>&1 | Tee-Object "$PSScriptRoot\XC-Install.log"
+		-Verbose | Tee-Object "$PSScriptRoot\XC-Install.log"
 <% else %>
 	# , InstallSXASolrCores, PopulateSXAIndexesSchema, RebuildSXAIndexes
   Install-SitecoreConfiguration @params `
 		-Skip InstallPowershellExtensions, InstallSXAFrameworkModule, InstallSXAStorefrontModule, CreateDefaultTenantAndSite `
-		-Verbose *>&1 | Tee-Object "$PSScriptRoot\XC-Install.log"
+		-Verbose | Tee-Object "$PSScriptRoot\XC-Install.log"
 <% end %>
 }
 elseif ($CommerceSearchProvider -eq "AZURE") {
