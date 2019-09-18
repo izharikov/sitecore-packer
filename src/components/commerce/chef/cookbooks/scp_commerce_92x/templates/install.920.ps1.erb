@@ -1,0 +1,125 @@
+#Requires -Version 3
+param(
+  [string]$SiteNamePrefix = "<%= @sitecore['prefix'] %>",
+  [string]$SiteName = "<%= @sitecore['site_hostname'] %>",
+  [string]$SiteHostHeaderName = "<%= @commerce['storefront_hostname'] %>",
+  [string]$SqlDbPrefix = $SiteNamePrefix,
+	[string]$SqlServer = "<%= @sitecore['sql_server'] %>",
+  [string]$CommerceSearchProvider = "SOLR",
+  [bool]$skipInstallDefaultStorefront = $false,
+  [string]$SqlUser = "<%= @sitecore['sql_admin_user'] %>",
+  [string]$SqlPass = "<%= @sitecore['sql_admin_password'] %>",
+  [string]$XCInstallRoot = "..",
+  [string]$XConnectSiteName = "<%= @sitecore['xconnect_hostname'] %>",
+  [string]$IdentityServerSiteName = "<%= @sitecore['identityserver_hostname'] %>",
+  [string]$SolrUrl = "<%= @solr['url'] %>",
+  [string]$SolrRoot = "<%= @solr['root'] %>",
+  [string]$SolrService = "<%= @solr['service'] %>",
+  [string]$WindowsUserName = "<%= @install['windows_user_name'] %>",
+  [string]$WindowsUserPassword = "<%= @install['windows_user_password'] %>"
+)
+
+
+# Hide progress bar to speed up installation
+$global:ProgressPreference = 'silentlyContinue'
+Clear-Host
+
+Import-Module SitecoreInstallFramework
+
+$global:DEPLOYMENT_DIRECTORY = Split-Path $MyInvocation.MyCommand.Path
+$modulesPath = ( Join-Path -Path $DEPLOYMENT_DIRECTORY -ChildPath "Modules" )
+if ($env:PSModulePath -notlike "*$modulesPath*") {
+  $p = $env:PSModulePath + ";" + $modulesPath
+  [Environment]::SetEnvironmentVariable("PSModulePath", $p)
+}
+
+$params = @{
+  Path                                     = Resolve-Path "$PWD\Configuration\Commerce\Master_SingleServer.json"
+  SiteName                                 = $SiteName
+  SiteHostHeaderName                       = $SiteHostHeaderName
+  InstallDir                               = "c:\inetpub\wwwroot\$SiteName"
+	XConnectInstallDir                       = "c:\inetpub\wwwroot\$XConnectSiteName"
+	CommerceInstallRoot                      = "c:\inetpub\wwwroot\"
+  CommerceServicesDbServer                 = $SqlServer	#OR "SQLServerName\SQLInstanceName"
+	CommerceServicesDbName                   = "$($Prefix)_SharedEnvironments"
+	CommerceServicesGlobalDbName             = "$($Prefix)_Global"
+  SitecoreDbServer                         = $SqlServer	#OR "SQLServerName\SQLInstanceName"
+	SitecoreCoreDbName                       = "$($Prefix)_Core"
+  SqlDbPrefix                              = $SqlDbPrefix
+  SqlAdminUser                             = $SqlUser
+  SqlAdminPassword                         = $SqlPass
+  CommerceSearchProvider                   = $CommerceSearchProvider
+  SolrUrl                                  = $SolrUrl
+	SolrRoot                                 = $SolrRoot
+	SolrService                              = $SolrService
+  SolrSchemas                              = ( Join-Path -Path $PWD -ChildPath "SolrSchemas" )
+  SearchIndexPrefix                        = "$($Prefix)_"
+  CommerceServicesPostfix                  = $Prefix
+	CommerceServicesHostPostfix              = $SiteName
+  EnvironmentsPrefix                       = "Habitat"
+  Environments                             = @('AdventureWorksAuthoring', 'HabitatAuthoring')
+  EnvironmentsGuids                        = @('78a1ea611f3742a7ac899a3f46d60ca5', '40e77b7b4be94186b53b5bfd89a6a83b')
+  MinionEnvironments                       = @('AdventureWorksMinions', 'HabitatMinions')
+  AzureSearchServiceName                   = ""
+  AzureSearchAdminKey                      = ""
+  AzureSearchQueryKey                      = ""
+  CommerceOpsServicesPort                  = "5015"
+  CommerceShopsServicesPort                = "5005"
+  CommerceAuthoringServicesPort            = "5000"
+  CommerceMinionsServicesPort              = "5010"
+  SiteUtilitiesSrc                         = ( Join-Path -Path $PWD -ChildPath "SiteUtilityPages" )
+  CommerceEngineCertificateName            = $StorefrontSiteName
+  RedisConfiguration                       = "localhost"
+  RedisInstanceName                        = "Redis" # The name of the Redis instance.
+  RedisInstallationPath                    = "C:\Program Files\Redis"
+  CommerceEngineWdpFullPath                = Resolve-Path -Path "$XCInstallRoot\Sitecore.Commerce.Engine.OnPrem.$CommerceSearchProvider*scwdp.zip"
+  HabitatImagesWdpFullPath                 = Resolve-Path -Path "$XCInstallRoot\Sitecore.Commerce.Habitat.Images.OnPrem.scwdp.zip"
+  AdventureWorksImagesWdpFullPath          = Resolve-Path -Path "$XCInstallRoot\Adventure Works Images.OnPrem.scwdp.zip"
+  CommerceConnectWdpFullPath               = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Connect Core*.scwdp.zip"
+  CommercexProfilesWdpFullPath             = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce ExperienceProfile Core*.scwdp.zip"
+  CommercexAnalyticsWdpFullPath            = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce ExperienceAnalytics Core*.scwdp.zip"
+  CommerceMAWdpFullPath                    = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Marketing Automation Core*.scwdp.zip"
+  CEConnectWdpFullPath                     = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Engine Connect*.scwdp.zip"
+  CommerceMAForAutomationEngineZIPFullPath = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Marketing Automation for AutomationEngine*.zip"
+  PowerShellExtensionsModuleZIPFullPath    = Resolve-Path -Path "$XCInstallRoot\Sitecore PowerShell Extensions*.zip"
+  SXAModuleZIPFullPath                     = Resolve-Path -Path "$XCInstallRoot\Sitecore Experience Accelerator*.zip"
+  SXACommerceWdpFullPath                   = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Experience Accelerator*.scwdp.zip" | Select-Object -first 1
+  SXAStorefrontWdpFullPath                 = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Experience Accelerator Storefront*.scwdp.zip" | Select-Object -first 1
+  SXAStorefrontThemeWdpFullPath            = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Experience Accelerator Storefront Themes*.scwdp.zip"
+  SXAStorefrontCatalogWdpFullPath          = Resolve-Path -Path "$XCInstallRoot\Sitecore Commerce Experience Accelerator Habitat*.scwdp.zip"
+  MergeToolFullPath                        = Resolve-Path -Path "$XCInstallRoot\MSBuild.Microsoft.VisualStudio.Web.targets*\tools\VSToolsPath\Web\Microsoft.Web.XmlTransform.dll"
+  UserDomain                               = $Env:COMPUTERNAME
+	UserName                                 = $WindowsUserName
+	UserPassword                             = $WindowsUserPassword   
+  BraintreeMerchantId                      = ''
+  BraintreePublicKey                       = ''
+  BraintreePrivateKey                      = ''
+  BraintreeEnvironment                     = ''
+  SitecoreDomain                           = "sitecore"
+  SitecoreUsername                         = "admin"
+  SitecoreUserPassword                     = "b"
+  BizFxSiteName                            = "SitecoreBizFx"
+  BizFxPort                                = "4200"
+  BizFxPackage                             = Resolve-Path -Path "$XCInstallRoot\Sitecore.BizFx.OnPrem*scwdp.zip"
+  SitecoreIdentityServerApplicationName    = $IdentityServerSiteName
+  SitecoreIdentityServerUrl                = "https://$IdentityServerSiteName"
+  SkipInstallDefaultStorefront             = $SkipInstallDefaultStorefront
+}
+
+if ($CommerceSearchProvider -eq "SOLR") {
+  <% if @install_storefront %>
+  # , InstallSXAFrameworkModule
+  Install-SitecoreConfiguration @params `
+    -Skip InstallPowershellExtensions `
+    -Verbose *>&1 | Tee-Object "$PSScriptRoot\XC-Install.log"
+  <% else %>
+  # , InstallSXASolrCores, PopulateSXAIndexesSchema, RebuildSXAIndexes
+  Install-SitecoreConfiguration @params `
+    -Skip InstallPowershellExtensions, InstallSXAFrameworkModule, InstallSXAStorefrontModule, CreateDefaultTenantAndSite `
+    -Verbose *>&1 | Tee-Object "$PSScriptRoot\XC-Install.log"
+  <% end %>
+}
+elseif ($CommerceSearchProvider -eq "AZURE") {
+  # Installation with AzureSearch not supported right now!
+  Install-SitecoreConfiguration @params -Skip InstallSolrCores
+}
